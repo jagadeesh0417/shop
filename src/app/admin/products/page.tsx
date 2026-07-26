@@ -1,15 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, X, Check, Upload, Loader } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
-const page = { padding: '112px 0 80px' };
-const container = { maxWidth: '1152px', margin: '0 auto', padding: '0 24px' };
-const backLink = { fontSize: '12px', color: '#9ca3af', textDecoration: 'none' };
-const title = { fontSize: '30px', fontWeight: 700, color: '#111827', marginTop: '4px' };
+
 const th = { textAlign: 'left' as const, padding: '16px', fontWeight: 500, fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' };
 const td = { padding: '16px', borderBottom: '1px solid #f3f4f6' };
 const input = { width: '100%', background: '#ffffff', border: '1px solid #d1d5db', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', color: '#000000' };
@@ -129,17 +126,13 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div style={page}>
-      <div style={container}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <div>
-            <Link href="/admin" style={backLink}>&larr; Dashboard</Link>
-            <h1 style={title}>Products</h1>
-          </div>
-          <button onClick={() => { setEditingId(null); setForm({ name: '', slug: '', description: '', price: '', originalPrice: '', category: 'Shirts', images: [], sizes: '', colors: '', fabric: '', fit: '', inStock: true, isNewArrival: false, isBestseller: false }); setShowForm(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#000000', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
-            <Plus size={16} /> Add Product
-          </button>
-        </div>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#000000' }}>Products</h2>
+        <button onClick={() => { setEditingId(null); setForm({ name: '', slug: '', description: '', price: '', originalPrice: '', category: 'Shirts', images: [], sizes: '', colors: '', fabric: '', fit: '', inStock: true, isNewArrival: false, isBestseller: false }); setShowForm(true); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#000000', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+          <Plus size={16} /> Add Product
+        </button>
+      </div>
 
         {showForm && (
           <div style={overlay} onClick={() => !saving && setShowForm(false)}>
@@ -285,7 +278,6 @@ export default function AdminProductsPage() {
             </table>
           </div>
         </div>
-      </div>
     </div>
   );
 }

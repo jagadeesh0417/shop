@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Loader } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 const statusStyles: Record<string, { bg: string; color: string; next: string }> = {
@@ -13,10 +12,7 @@ const statusStyles: Record<string, { bg: string; color: string; next: string }> 
   delivered: { bg: '#d1fae5', color: '#065f46', next: '' },
 };
 
-const page = { padding: '112px 0 80px' };
-const container = { maxWidth: '1152px', margin: '0 auto', padding: '0 24px' };
-const backLink = { fontSize: '12px', color: '#9ca3af', textDecoration: 'none' };
-const title = { fontSize: '30px', fontWeight: 700, color: '#000000', marginTop: '4px' };
+
 const th = { textAlign: 'left' as const, padding: '16px', fontWeight: 500, fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' };
 const td = { padding: '16px', borderBottom: '1px solid #f3f4f6' };
 
@@ -51,12 +47,8 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div style={page}>
-      <div style={container}>
-        <div style={{ marginBottom: '32px' }}>
-          <Link href="/admin" style={backLink}>&larr; Dashboard</Link>
-          <h1 style={title}>Orders</h1>
-        </div>
+    <div>
+      <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#000000', marginBottom: '24px' }}>Orders</h2>
 
         <div style={{ background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
@@ -168,7 +160,6 @@ export default function AdminOrdersPage() {
             </div>
           );
         })()}
-      </div>
     </div>
   );
 }

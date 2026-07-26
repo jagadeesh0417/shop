@@ -7,8 +7,7 @@ import { isCODEnabled, setCODEnabled } from '@/lib/settings';
 import { fetchSettings } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 
-const page = { padding: '112px 0 80px' };
-const container = { maxWidth: '1280px', margin: '0 auto', padding: '0 24px' };
+
 const label = { fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.2em', color: '#0341F6' };
 const title = { fontSize: '30px', fontWeight: 700, color: '#000000', marginTop: '8px' };
 const card = { background: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e5e7eb' };
@@ -41,17 +40,15 @@ export default function AdminPage() {
     setCODEnabled(next);
   };
 
-  if (loading) return <div style={page}><div style={container}><p style={{ color: '#9ca3af' }}>Loading dashboard...</p></div></div>;
+  if (loading) return <p style={{ color: '#9ca3af' }}>Loading dashboard...</p>;
 
   return (
-    <div style={page}>
-      <div style={container}>
-        <div style={{ marginBottom: '32px' }}>
-          <div style={label}>Admin</div>
-          <h1 style={title}>Dashboard</h1>
-        </div>
+    <div>
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#000000' }}>Dashboard</h2>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
           <div style={card}>
             <DollarSign size={20} color="#059669" />
             <div style={cardVal}>{formatPrice(stats.totalRevenue)}</div>
@@ -156,6 +153,5 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }

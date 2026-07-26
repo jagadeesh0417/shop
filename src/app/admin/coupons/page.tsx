@@ -1,16 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2 } from 'lucide-react';
 import { fetchCoupons, createCoupon, deleteCoupon } from '@/lib/api';
 
-const page = { padding: '112px 0 80px' };
-const container = { maxWidth: '896px', margin: '0 auto', padding: '0 24px' };
-const backLink = { fontSize: '12px', color: '#9ca3af', textDecoration: 'none' };
-const title = { fontSize: '30px', fontWeight: 700, color: '#111827', marginTop: '4px' };
-const input = { background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', color: '#111827' };
+const input = { background: '#ffffff', border: '1px solid #d1d5db', borderRadius: '6px', padding: '10px 12px', fontSize: '14px', color: '#000000' };
 const th = { textAlign: 'left' as const, padding: '16px', fontWeight: 500, fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' };
 const td = { padding: '16px', borderBottom: '1px solid #f3f4f6' };
 
@@ -37,14 +32,10 @@ export default function AdminCouponsPage() {
   const toggleActive = (id: string) => setCoupons((prev) => prev.map((c) => (c._id === id ? { ...c, active: !c.active } : c)));
 
   return (
-    <div style={page}>
-      <div style={container}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-          <div>
-            <Link href="/admin" style={backLink}>&larr; Dashboard</Link>
-            <h1 style={title}>Coupon Codes</h1>
-          </div>
-          <button onClick={() => setShowForm(!showForm)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#0341F6', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#000000' }}>Coupon Codes</h2>
+        <button onClick={() => setShowForm(!showForm)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#000000', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
             <Plus size={16} /> Add Coupon
           </button>
         </div>
@@ -94,7 +85,6 @@ export default function AdminCouponsPage() {
             </tbody>
           </table>
           {coupons.length === 0 && <p style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>No coupons yet.</p>}
-        </div>
       </div>
     </div>
   );
