@@ -8,6 +8,29 @@ import { fetchSettings } from '@/lib/api';
 
 const iconMap: Record<string, any> = { ShoppingBag, Package, TrendingUp, Users };
 
+const s = {
+  page: { padding: '112px 0 80px' },
+  container: { maxWidth: '1280px', margin: '0 auto', padding: '0 24px' },
+  header: { marginBottom: '32px' },
+  label: { fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#0341F6' },
+  title: { fontSize: '30px', fontWeight: 700, color: '#111827', marginTop: '8px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '32px' },
+  card: { background: '#ffffff', borderRadius: '8px', padding: '20px', border: '1px solid #e5e7eb' },
+  cardVal: { fontSize: '24px', fontWeight: 700, color: '#111827', marginTop: '8px' },
+  cardLabel: { fontSize: '12px', color: '#9ca3af', marginTop: '4px' },
+  codRow: { background: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e5e7eb', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  codText: { display: 'flex', alignItems: 'center', gap: '12px' },
+  codTitle: { fontSize: '14px', fontWeight: 600, color: '#111827' },
+  codDesc: { fontSize: '12px', color: '#9ca3af', marginTop: '2px' },
+  toggle: (on: boolean) => ({ position: 'relative' as const, width: '48px', height: '24px', borderRadius: '12px', border: 'none', cursor: 'pointer', background: on ? '#059669' : '#d1d5db', transition: 'background 0.3s' }),
+  toggleDot: (on: boolean) => ({ position: 'absolute' as const, top: '2px', left: '2px', width: '20px', height: '20px', background: '#ffffff', borderRadius: '50%', transform: on ? 'translateX(24px)' : 'translateX(0)', transition: 'transform 0.3s' }),
+  navGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
+  navLink: { background: '#ffffff', borderRadius: '8px', padding: '24px', border: '1px solid #e5e7eb', textDecoration: 'none', display: 'block' },
+  navIcon: { color: '#0341F6', marginBottom: '12px' },
+  navTitle: { fontSize: '14px', fontWeight: 600, color: '#111827' },
+  navDesc: { fontSize: '12px', color: '#6b7280', marginTop: '4px' },
+};
+
 export default function AdminPage() {
   const [codOn, setCodOn] = useState(true);
   const [stats, setStats] = useState({ productCount: 0, orderCount: 0, couponCount: 0, bannerCount: 0 });
@@ -24,66 +47,56 @@ export default function AdminPage() {
   };
 
   const statCards = [
-    { label: 'Total Products', value: String(stats.productCount), icon: ShoppingBag, color: 'text-accent-light' },
-    { label: 'Active Orders', value: String(stats.orderCount), icon: Package, color: 'text-warning' },
-    { label: 'Coupons', value: String(stats.couponCount), icon: Ticket, color: 'text-success' },
-    { label: 'Banners', value: String(stats.bannerCount), icon: Image, color: 'text-accent-light' },
+    { label: 'Total Products', value: String(stats.productCount), icon: ShoppingBag, color: '#0341F6' },
+    { label: 'Active Orders', value: String(stats.orderCount), icon: Package, color: '#d97706' },
+    { label: 'Coupons', value: String(stats.couponCount), icon: Ticket, color: '#059669' },
+    { label: 'Banners', value: String(stats.bannerCount), icon: Image, color: '#0341F6' },
   ];
 
   return (
-    <div className="pt-28 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-light">Admin</span>
-          <h1 className="mt-2 text-3xl font-display text-white">Dashboard</h1>
+    <div style={s.page}>
+      <div style={s.container}>
+        <div style={s.header}>
+          <div style={s.label}>Admin</div>
+          <h1 style={s.title}>Dashboard</h1>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div style={s.grid}>
           {statCards.map((stat) => (
-            <div key={stat.label} className="bg-surface rounded-lg p-5 border border-border">
-              <stat.icon size={20} className={stat.color} />
-              <p className="text-2xl font-bold text-white mt-2">{stat.value}</p>
-              <p className="text-xs text-text-muted mt-1">{stat.label}</p>
+            <div key={stat.label} style={s.card}>
+              <div style={{ color: stat.color }}><stat.icon size={20} /></div>
+              <div style={s.cardVal}>{stat.value}</div>
+              <div style={s.cardLabel}>{stat.label}</div>
             </div>
           ))}
         </div>
 
-        <div className="bg-surface rounded-lg p-6 border border-border mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <DollarSign size={24} className="text-accent-light" />
-              <div>
-                <h2 className="text-sm font-semibold text-white">Cash on Delivery</h2>
-                <p className="text-xs text-text-muted mt-0.5">{codOn ? 'COD enabled at checkout' : 'COD hidden — Razorpay only'}</p>
-              </div>
+        <div style={s.codRow}>
+          <div style={s.codText}>
+            <DollarSign size={24} color="#0341F6" />
+            <div>
+              <div style={s.codTitle}>Cash on Delivery</div>
+              <div style={s.codDesc}>{codOn ? 'COD enabled at checkout' : 'COD hidden — Razorpay only'}</div>
             </div>
-            <button onClick={toggleCOD} className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${codOn ? 'bg-success' : 'bg-border'}`}>
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${codOn ? 'translate-x-6' : 'translate-x-0'}`} />
-            </button>
           </div>
+          <button onClick={toggleCOD} style={s.toggle(codOn)}>
+            <span style={s.toggleDot(codOn)} />
+          </button>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href="/admin/products" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
-            <ShoppingBag size={24} className="text-accent-light mb-3" />
-            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Products</h2>
-            <p className="text-xs text-text-secondary mt-1">Manage inventory</p>
-          </Link>
-          <Link href="/admin/orders" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
-            <Package size={24} className="text-accent-light mb-3" />
-            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Orders</h2>
-            <p className="text-xs text-text-secondary mt-1">View & update orders</p>
-          </Link>
-          <Link href="/admin/banners" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
-            <Image size={24} className="text-accent-light mb-3" />
-            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Banners</h2>
-            <p className="text-xs text-text-secondary mt-1">Add or remove banners</p>
-          </Link>
-          <Link href="/admin/coupons" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
-            <Ticket size={24} className="text-accent-light mb-3" />
-            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Coupons</h2>
-            <p className="text-xs text-text-secondary mt-1">Manage coupon codes</p>
-          </Link>
+        <div style={s.navGrid}>
+          {[
+            { href: '/admin/products', icon: ShoppingBag, title: 'Products', desc: 'Manage inventory' },
+            { href: '/admin/orders', icon: Package, title: 'Orders', desc: 'View & update orders' },
+            { href: '/admin/banners', icon: Image, title: 'Banners', desc: 'Add or remove banners' },
+            { href: '/admin/coupons', icon: Ticket, title: 'Coupons', desc: 'Manage coupon codes' },
+          ].map((item) => (
+            <Link key={item.href} href={item.href} style={s.navLink}>
+              <div style={s.navIcon}><item.icon size={24} /></div>
+              <div style={s.navTitle}>{item.title}</div>
+              <div style={s.navDesc}>{item.desc}</div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

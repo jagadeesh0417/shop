@@ -19,14 +19,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setLoading(false);
   }, [router]);
 
-  useEffect(() => {
-    document.body.classList.add('admin-active');
-    return () => document.body.classList.remove('admin-active');
-  }, []);
-
   if (pathname === '/admin/login') return <>{children}</>;
-  if (loading) return <div className="min-h-screen bg-white" />;
+  if (loading) return <div style={{ minHeight: '100vh', background: '#ffffff' }} />;
   if (!authed) return null;
 
-  return <div className="admin-panel">{children}</div>;
+  return <>{children}</>;
 }

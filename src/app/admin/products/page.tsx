@@ -7,6 +7,13 @@ import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 import { products } from '@/lib/products';
 import { formatPrice } from '@/lib/utils';
 
+const page = { padding: '112px 0 80px' };
+const container = { maxWidth: '1152px', margin: '0 auto', padding: '0 24px' };
+const backLink = { fontSize: '12px', color: '#9ca3af', textDecoration: 'none' };
+const title = { fontSize: '30px', fontWeight: 700, color: '#111827', marginTop: '4px' };
+const th = { textAlign: 'left' as const, padding: '16px', fontWeight: 500, fontSize: '12px', color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' };
+const td = { padding: '16px', borderBottom: '1px solid #f3f4f6' };
+
 export default function AdminProductsPage() {
   const [productList, setProductList] = useState(products);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -14,126 +21,91 @@ export default function AdminProductsPage() {
 
   const startEdit = (id: string) => {
     const p = productList.find((x) => x.id === id);
-    if (p) {
-      setEditingId(id);
-      setEditForm({ name: p.name, price: String(p.price), inStock: p.inStock });
-    }
+    if (p) setEditForm({ name: p.name, price: String(p.price), inStock: p.inStock });
+    setEditingId(id);
   };
 
   const saveEdit = () => {
     setProductList((prev) =>
-      prev.map((p) =>
-        p.id === editingId
-          ? { ...p, name: editForm.name, price: Number(editForm.price), inStock: editForm.inStock }
-          : p
-      )
+      prev.map((p) => p.id === editingId ? { ...p, name: editForm.name, price: Number(editForm.price), inStock: editForm.inStock } : p)
     );
     setEditingId(null);
   };
 
-  const deleteProduct = (id: string) => {
-    setProductList((prev) => prev.filter((p) => p.id !== id));
-  };
+  const deleteProduct = (id: string) => setProductList((prev) => prev.filter((p) => p.id !== id));
 
   return (
-    <div className="pt-28 pb-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
+    <div style={page}>
+      <div style={container}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
           <div>
-            <Link href="/admin" className="text-xs text-text-muted hover:text-white transition-colors">&larr; Dashboard</Link>
-            <h1 className="mt-1 text-3xl font-display text-white">Products</h1>
+            <Link href="/admin" style={backLink}>&larr; Dashboard</Link>
+            <h1 style={title}>Products</h1>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-white/90 text-[#0341F6] text-sm font-medium rounded transition-colors">
+          <button style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#0341F6', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
             <Plus size={16} /> Add Product
           </button>
         </div>
 
-        <div className="bg-surface rounded-lg border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        <div style={{ background: '#ffffff', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="border-b border-border text-text-muted text-xs uppercase tracking-wider">
-                  <th className="text-left p-4 font-medium">Product</th>
-                  <th className="text-left p-4 font-medium">Category</th>
-                  <th className="text-left p-4 font-medium">Price</th>
-                  <th className="text-left p-4 font-medium">Stock</th>
-                  <th className="text-left p-4 font-medium">Rating</th>
-                  <th className="text-right p-4 font-medium">Actions</th>
+                <tr>
+                  <th style={th}>Product</th>
+                  <th style={th}>Category</th>
+                  <th style={th}>Price</th>
+                  <th style={th}>Stock</th>
+                  <th style={th}>Rating</th>
+                  <th style={{ ...th, textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <AnimatePresence>
                   {productList.map((p) => (
-                    <motion.tr
-                      key={p.id}
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="border-b border-border/50 hover:bg-surface-light transition-colors"
-                    >
+                    <motion.tr key={p.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ background: editingId === p.id ? '#fefce8' : undefined }}>
                       {editingId === p.id ? (
                         <>
-                          <td className="p-4">
-                            <input
-                              value={editForm.name}
-                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                              className="w-full bg-background border border-border rounded px-2 py-1 text-sm text-white"
-                            />
+                          <td style={td}>
+                            <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={{ width: '100%', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '4px', padding: '4px 8px', fontSize: '14px', color: '#111827' }} />
                           </td>
-                          <td className="p-4 text-text-secondary">{p.category}</td>
-                          <td className="p-4">
-                            <input
-                              type="number"
-                              value={editForm.price}
-                              onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                              className="w-24 bg-background border border-border rounded px-2 py-1 text-sm text-white"
-                            />
+                          <td style={{ ...td, color: '#6b7280' }}>{p.category}</td>
+                          <td style={td}>
+                            <input type="number" value={editForm.price} onChange={(e) => setEditForm({ ...editForm, price: e.target.value })} style={{ width: '96px', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '4px', padding: '4px 8px', fontSize: '14px', color: '#111827' }} />
                           </td>
-                          <td className="p-4">
-                            <button
-                              onClick={() => setEditForm({ ...editForm, inStock: !editForm.inStock })}
-                              className={`px-2 py-0.5 text-xs rounded ${editForm.inStock ? 'bg-success/20 text-success' : 'bg-error/20 text-error'}`}
-                            >
+                          <td style={td}>
+                            <button onClick={() => setEditForm({ ...editForm, inStock: !editForm.inStock })} style={{ padding: '2px 8px', fontSize: '12px', borderRadius: '4px', border: 'none', cursor: 'pointer', background: editForm.inStock ? '#d1fae5' : '#fee2e2', color: editForm.inStock ? '#065f46' : '#991b1b' }}>
                               {editForm.inStock ? 'In Stock' : 'Out of Stock'}
                             </button>
                           </td>
-                          <td className="p-4 text-text-secondary">{p.rating}</td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button onClick={saveEdit} className="p-1.5 text-success hover:bg-success/10 rounded">
-                                <Check size={16} />
-                              </button>
-                              <button onClick={() => setEditingId(null)} className="p-1.5 text-text-muted hover:text-white rounded">
-                                <X size={16} />
-                              </button>
+                          <td style={{ ...td, color: '#6b7280' }}>{p.rating}</td>
+                          <td style={{ ...td, textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                              <button onClick={saveEdit} style={{ padding: '6px', color: '#059669', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '4px' }}><Check size={16} /></button>
+                              <button onClick={() => setEditingId(null)} style={{ padding: '6px', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '4px' }}><X size={16} /></button>
                             </div>
                           </td>
                         </>
                       ) : (
                         <>
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <img src={p.images[0]} alt={p.name} className="w-10 h-12 object-cover rounded" />
-                              <span className="text-white font-medium">{p.name}</span>
+                          <td style={td}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <img src={p.images[0]} alt={p.name} style={{ width: '40px', height: '48px', objectFit: 'cover', borderRadius: '4px' }} />
+                              <span style={{ color: '#111827', fontWeight: 500 }}>{p.name}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-text-secondary">{p.category}</td>
-                          <td className="p-4 text-white font-semibold">{formatPrice(p.price)}</td>
-                          <td className="p-4">
-                            <span className={`px-2 py-0.5 text-xs rounded ${p.inStock ? 'bg-success/20 text-success' : 'bg-error/20 text-error'}`}>
+                          <td style={{ ...td, color: '#6b7280' }}>{p.category}</td>
+                          <td style={{ ...td, color: '#111827', fontWeight: 600 }}>{formatPrice(p.price)}</td>
+                          <td style={td}>
+                            <span style={{ padding: '2px 8px', fontSize: '12px', borderRadius: '4px', background: p.inStock ? '#d1fae5' : '#fee2e2', color: p.inStock ? '#065f46' : '#991b1b' }}>
                               {p.inStock ? 'In Stock' : 'Out of Stock'}
                             </span>
                           </td>
-                          <td className="p-4 text-text-secondary">{p.rating}</td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => startEdit(p.id)} className="p-1.5 text-text-muted hover:text-accent-light rounded hover:bg-accent/10 transition-colors">
-                                <Pencil size={16} />
-                              </button>
-                              <button onClick={() => deleteProduct(p.id)} className="p-1.5 text-text-muted hover:text-error rounded hover:bg-error/10 transition-colors">
-                                <Trash2 size={16} />
-                              </button>
+                          <td style={{ ...td, color: '#6b7280' }}>{p.rating}</td>
+                          <td style={{ ...td, textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                              <button onClick={() => startEdit(p.id)} style={{ padding: '6px', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '4px' }}><Pencil size={16} /></button>
+                              <button onClick={() => deleteProduct(p.id)} style={{ padding: '6px', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '4px' }}><Trash2 size={16} /></button>
                             </div>
                           </td>
                         </>
