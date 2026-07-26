@@ -109,7 +109,32 @@
     animation: marquee 30s linear infinite;
   }
 
-  .admin-panel { min-height: 100vh; background: #ffffff; }
+  body.admin-active { background-color: #ffffff !important; }
+  body.admin-active .bg-background { background-color: #ffffff !important; }
+
+  .admin-panel {
+    min-height: 100vh;
+    background: #ffffff;
+    color: #111827;
+  }
+  .admin-panel .text-white,
+  .admin-panel .text-text-primary { color: #111827; }
+  .admin-panel .text-text-secondary { color: #4b5563; }
+  .admin-panel .text-text-muted { color: #9ca3af; }
+  .admin-panel .text-accent-light { color: #0341F6; }
+  .admin-panel .text-success { color: #059669; }
+  .admin-panel .text-error { color: #dc2626; }
+  .admin-panel .text-warning { color: #d97706; }
+  .admin-panel .bg-surface { background-color: #ffffff; }
+  .admin-panel .bg-surface-light { background-color: #f9fafb; }
+  .admin-panel .border-border { border-color: #e5e7eb; }
+  .admin-panel input,
+  .admin-panel select,
+  .admin-panel textarea { color: #111827; background: #f9fafb; border-color: #d1d5db; }
+  .admin-panel input::placeholder,
+  .admin-panel select::placeholder,
+  .admin-panel textarea::placeholder { color: #9ca3af; }
+
 
   @keyframes pulse-dot {
     0%, 100% { opacity: 0.4; }
