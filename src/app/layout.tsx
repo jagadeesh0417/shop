@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Bebas_Neue } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import Header from '@/components/Header';
@@ -13,9 +13,9 @@ const inter = Inter({
   display: 'swap',
 });
 
-const bebasNeue = Bebas_Neue({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  weight: '400',
+  weight: ['400', '600', '700'],
   variable: '--font-display',
   display: 'swap',
 });
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${bebasNeue.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="bg-background text-text-primary font-body antialiased">
         <CartProvider>
           <Header />

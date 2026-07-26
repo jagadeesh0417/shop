@@ -18,8 +18,7 @@ export default function CategorySection({ name }: Props) {
     <RevealOnScroll>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
         <div className="text-center mb-10">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">{name}</span>
-          <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-display text-white">{name}</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">{name}</h2>
           <p className="mt-2 text-sm text-white/60">Explore our collection of premium {name.toLowerCase()}.</p>
         </div>
 
