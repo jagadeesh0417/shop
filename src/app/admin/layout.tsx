@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import './admin.css';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.body.classList.add('admin-active');
     const token = localStorage.getItem('admin_token');
     if (!token) {
       router.replace('/admin/login');
@@ -17,11 +19,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setAuthed(true);
     }
     setLoading(false);
+    return () => document.body.classList.remove('admin-active');
   }, [router]);
 
   if (pathname === '/admin/login') return <>{children}</>;
-  if (loading) return <div style={{ minHeight: '100vh', background: '#ffffff' }} />;
+  if (loading) return <div className="admin-root" />;
   if (!authed) return null;
 
-  return <>{children}</>;
+  return <div className="admin-root">{children}</div>;
 }
