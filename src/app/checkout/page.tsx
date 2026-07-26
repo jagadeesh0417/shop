@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, CreditCard, TruckIcon, Package } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CreditCard, TruckIcon } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice, cn } from '@/lib/utils';
 import { isCODEnabled } from '@/lib/settings';
@@ -11,21 +11,29 @@ import { fetchAPI } from '@/lib/api';
 
 const steps = ['Shipping', 'Payment', 'Review'];
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [codAvailable, setCodAvailable] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [couponMsg, setCouponMsg] = useState('');
+  const [placing, setPlacing] = useState(false);
 
   const discount = appliedCoupon
     ? appliedCoupon.type === 'percentage'
-      ? subtotal - (subtotal - (subtotal * appliedCoupon.value) / 100)
+      ? (subtotal * appliedCoupon.value) / 100
       : appliedCoupon.value
     : 0;
-  const total = subtotal - discount;
+  const total = Math.max(subtotal - discount, 0);
 
   useEffect(() => {
     setCodAvailable(isCODEnabled());
@@ -51,20 +59,89 @@ export default function CheckoutPage() {
     }
   };
 
+  const loadRazorpayScript = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      if (window.Razorpay) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      document.body.appendChild(script);
+    });
+  }, []);
+
   const [shipping, setShipping] = useState({
-    fullName: '',
-    phone: '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
+    fullName: '', phone: '', street: '', city: '', state: '', pincode: '',
   });
+
+  const createOrderInDB = async (paymentId?: string) => {
+    const orderData = {
+      items: items.map((i) => ({
+        productId: i.product.id, name: i.product.name, price: i.product.price,
+        size: i.size, quantity: i.quantity, image: i.product.images[0],
+      })),
+      status: 'placed',
+      shippingAddress: shipping,
+      paymentMethod: paymentMethod + (paymentId ? ` (${paymentId})` : ''),
+      coupon: appliedCoupon?.code,
+      discount,
+      subtotal,
+      shipping: 0,
+      total,
+      createdAt: new Date().toISOString(),
+    };
+    await fetchAPI('/api/orders', { method: 'POST', body: JSON.stringify(orderData) });
+  };
+
+  const handleRazorpayPayment = async () => {
+    setPlacing(true);
+    try {
+      await loadRazorpayScript();
+      const order = await fetchAPI<{ id: string; amount: number; currency: string }>('/api/payment', {
+        method: 'POST', body: JSON.stringify({ amount: total, currency: 'INR' }),
+      });
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '128986423967725',
+        amount: order.amount,
+        currency: order.currency,
+        name: 'ARHUU Outfits',
+        description: `Order of ${items.length} item(s)`,
+        order_id: order.id,
+        handler: async (response: any) => {
+          await createOrderInDB(response.razorpay_payment_id);
+          clearCart();
+          setCompleted(true);
+          setPlacing(false);
+        },
+        prefill: { name: shipping.fullName, contact: shipping.phone, email: '' },
+        theme: { color: '#0341F6' },
+        modal: { ondismiss: () => setPlacing(false) },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', () => setPlacing(false));
+      rzp.open();
+    } catch {
+      setPlacing(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (paymentMethod === 'Cash on Delivery') {
+      setPlacing(true);
+      await createOrderInDB();
+      clearCart();
+      setCompleted(true);
+      setPlacing(false);
+    } else {
+      await handleRazorpayPayment();
+    }
+  };
 
   if (items.length === 0 && !completed) {
     return (
       <div className="pt-28 pb-20 text-center">
         <div className="max-w-md mx-auto px-4">
-          <Package size={48} className="mx-auto text-text-muted mb-4" />
           <h1 className="text-2xl font-display text-white mb-2">Nothing to Checkout</h1>
           <p className="text-sm text-text-secondary mb-6">Your cart is empty.</p>
           <Link href="/shop" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#0341F6] text-sm font-medium rounded">
@@ -79,47 +156,23 @@ export default function CheckoutPage() {
     return (
       <div className="pt-28 pb-20">
         <div className="max-w-lg mx-auto px-4 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-            className="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <motion.div
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <Check size={36} className="text-success" />
-            </motion.div>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 15 }} className="w-20 h-20 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check size={36} className="text-success" />
           </motion.div>
           <h1 className="text-3xl font-display text-white mb-2">Order Confirmed!</h1>
           <p className="text-sm text-text-secondary mb-2">Thank you for your purchase.</p>
           <p className="text-xs text-text-muted mb-6">Your order will be shipped within 2-3 business days.</p>
           <div className="flex items-center justify-center gap-4">
-            <Link href="/order-tracking" className="px-6 py-3 bg-white text-[#0341F6] text-sm font-medium rounded">
-              Track Order
-            </Link>
-            <Link href="/shop" className="px-6 py-3 border border-border text-text-secondary text-sm font-medium rounded hover:text-white transition-colors">
-              Continue Shopping
-            </Link>
+            <Link href="/order-tracking" className="px-6 py-3 bg-white text-[#0341F6] text-sm font-medium rounded">Track Order</Link>
+            <Link href="/shop" className="px-6 py-3 border border-border text-text-secondary text-sm font-medium rounded hover:text-white transition-colors">Continue Shopping</Link>
           </div>
         </div>
       </div>
     );
   }
 
-  const nextStep = () => {
-    if (step < 2) setStep(step + 1);
-    else {
-      clearCart();
-      setCompleted(true);
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 0) setStep(step - 1);
-  };
+  const nextStep = () => { if (step < 2) setStep(step + 1); };
+  const prevStep = () => { if (step > 0) setStep(step - 1); };
 
   return (
     <div className="pt-28 pb-20">
@@ -127,26 +180,17 @@ export default function CheckoutPage() {
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
-              <div className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors',
-                i <= step ? 'bg-white text-[#0341F6]' : 'bg-surface-light text-text-muted'
-              )}>
+              <div className={cn('w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors', i <= step ? 'bg-white text-[#0341F6]' : 'bg-surface-light text-text-muted')}>
                 {i < step ? <Check size={14} /> : i + 1}
               </div>
               <span className={cn('text-xs hidden sm:inline', i <= step ? 'text-white' : 'text-text-muted')}>{s}</span>
-              {i < 2 && <div className={cn('w-8 h-[1px]', i < step ? 'bg-accent' : 'bg-border')} />}
+              {i < 2 && <div className={cn('w-8 h-[1px]', i < step ? 'bg-white' : 'bg-border')} />}
             </div>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
             {step === 0 && (
               <div className="bg-surface rounded-lg p-6 border border-border space-y-4">
                 <div className="flex items-center gap-2 text-accent-light mb-4">
@@ -164,13 +208,7 @@ export default function CheckoutPage() {
                   ].map((field) => (
                     <div key={field.key} className={field.span ? 'sm:col-span-2' : ''}>
                       <label className="text-xs text-text-muted mb-1 block">{field.label}</label>
-                      <input
-                        type={field.type || 'text'}
-                        value={shipping[field.key as keyof typeof shipping]}
-                        onChange={(e) => setShipping({ ...shipping, [field.key]: e.target.value })}
-                        placeholder={field.placeholder}
-                        className="w-full bg-surface-light border border-border rounded px-3 py-2.5 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
-                      />
+                      <input type={field.type || 'text'} value={shipping[field.key as keyof typeof shipping]} onChange={(e) => setShipping({ ...shipping, [field.key]: e.target.value })} placeholder={field.placeholder} className="w-full bg-surface-light border border-border rounded px-3 py-2.5 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-white/50 transition-colors" />
                     </div>
                   ))}
                 </div>
@@ -188,8 +226,8 @@ export default function CheckoutPage() {
                     ...(codAvailable ? [{ label: 'Cash on Delivery', desc: 'Pay when you receive' }] : []),
                     { label: 'Razorpay', desc: 'Cards, UPI, Net Banking' },
                   ].map((method) => (
-                    <label key={method.label} className="flex items-center gap-3 p-4 bg-surface-light rounded-lg border border-border cursor-pointer hover:border-accent/50 transition-colors">
-                      <input type="radio" name="payment" defaultChecked={method.label === 'Cash on Delivery'} className="accent-accent" />
+                    <label key={method.label} onClick={() => setPaymentMethod(method.label)} className={`flex items-center gap-3 p-4 bg-surface-light rounded-lg border cursor-pointer transition-colors ${paymentMethod === method.label ? 'border-white' : 'border-border'}`}>
+                      <input type="radio" name="payment" checked={paymentMethod === method.label} onChange={() => {}} className="accent-white" />
                       <div>
                         <p className="text-sm font-medium text-white">{method.label}</p>
                         <p className="text-xs text-text-muted">{method.desc}</p>
@@ -220,36 +258,14 @@ export default function CheckoutPage() {
 
                 <div className="bg-surface rounded-lg p-6 border border-border space-y-3 text-sm">
                   <div className="flex gap-2">
-                    <input
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="Coupon code"
-                      className="flex-1 bg-surface-light border border-border rounded px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-white/50"
-                    />
-                    <button
-                      onClick={handleApplyCoupon}
-                      className="px-4 py-2 bg-white text-[#0341F6] text-sm font-medium rounded hover:bg-white/90 transition-colors"
-                    >
-                      Apply
-                    </button>
+                    <input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Coupon code" className="flex-1 bg-surface-light border border-border rounded px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-white/50" />
+                    <button onClick={handleApplyCoupon} className="px-4 py-2 bg-white text-[#0341F6] text-sm font-medium rounded hover:bg-white/90 transition-colors">Apply</button>
                   </div>
-                  {couponMsg && (
-                    <p className={`text-xs ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMsg}</p>
-                  )}
-                  <div className="flex justify-between text-text-secondary">
-                    <span>Subtotal</span><span className="text-white">{formatPrice(subtotal)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-success">
-                      <span>Discount ({appliedCoupon?.code})</span><span>-{formatPrice(discount)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-text-secondary">
-                    <span>Shipping</span><span className="text-success">Free</span>
-                  </div>
-                  <div className="border-t border-border pt-2 flex justify-between font-semibold">
-                    <span className="text-white">Total</span><span className="text-white">{formatPrice(total)}</span>
-                  </div>
+                  {couponMsg && <p className={`text-xs ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMsg}</p>}
+                  <div className="flex justify-between text-text-secondary"><span>Subtotal</span><span className="text-white">{formatPrice(subtotal)}</span></div>
+                  {discount > 0 && <div className="flex justify-between text-success"><span>Discount ({appliedCoupon?.code})</span><span>-{formatPrice(discount)}</span></div>}
+                  <div className="flex justify-between text-text-secondary"><span>Shipping</span><span className="text-success">Free</span></div>
+                  <div className="border-t border-border pt-2 flex justify-between font-semibold"><span className="text-white">Total</span><span className="text-white">{formatPrice(total)}</span></div>
                 </div>
 
                 <div className="bg-surface rounded-lg p-6 border border-border space-y-2 text-sm">
@@ -265,21 +281,11 @@ export default function CheckoutPage() {
         </AnimatePresence>
 
         <div className="flex items-center justify-between mt-6">
-          <button
-            onClick={prevStep}
-            disabled={step === 0}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2.5 text-sm rounded transition-colors',
-              step === 0 ? 'text-text-muted cursor-not-allowed' : 'text-text-secondary hover:text-white border border-border hover:border-text-muted'
-            )}
-          >
+          <button onClick={prevStep} disabled={step === 0} className={cn('flex items-center gap-2 px-4 py-2.5 text-sm rounded transition-colors', step === 0 ? 'text-text-muted cursor-not-allowed' : 'text-text-secondary hover:text-white border border-border hover:border-white/50')}>
             <ArrowLeft size={14} /> Back
           </button>
-          <button
-            onClick={nextStep}
-            className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-white/90 text-[#0341F6] text-sm font-medium rounded transition-colors"
-          >
-            {step === 2 ? 'Place Order' : 'Continue'} {step < 2 && <ArrowRight size={14} />}
+          <button onClick={step === 2 ? handlePlaceOrder : nextStep} disabled={placing} className="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-white/90 text-[#0341F6] text-sm font-medium rounded transition-colors">
+            {placing ? 'Processing...' : step === 2 ? 'Place Order' : 'Continue'} {step < 2 && <ArrowRight size={14} />}
           </button>
         </div>
       </div>
