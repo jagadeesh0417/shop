@@ -8,11 +8,29 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     await connectDB();
-    const productCount = await Product.countDocuments();
-    const orderCount = await Order.countDocuments();
-    const couponCount = await Coupon.countDocuments();
-    const bannerCount = await Banner.countDocuments();
-    return NextResponse.json({ productCount, orderCount, couponCount, bannerCount });
+    const [productCount, orderCount, couponCount, bannerCount, orders] = await Promise.all([
+      Product.countDocuments(),
+      Order.countDocuments(),
+      Coupon.countDocuments(),
+      Banner.countDocuments(),
+      Order.find({}, 'total status createdAt').sort({ createdAt: -1 }).lean(),
+    ]);
+
+    const totalRevenue = orders.reduce((sum, o: any) => sum + (o.total || 0), 0);
+    const statusBreakdown: Record<string, number> = {};
+    for (const o of orders) {
+      statusBreakdown[o.status] = (statusBreakdown[o.status] || 0) + 1;
+    }
+
+    return NextResponse.json({
+      productCount,
+      orderCount,
+      couponCount,
+      bannerCount,
+      totalRevenue,
+      statusBreakdown,
+      recentOrders: orders.slice(0, 5),
+    });
   } catch {
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }

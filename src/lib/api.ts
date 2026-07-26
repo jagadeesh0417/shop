@@ -26,7 +26,7 @@ export async function fetchCoupons() {
 }
 
 export async function fetchSettings() {
-  return fetchAPI<{ productCount: number; orderCount: number; couponCount: number; bannerCount: number }>('/api/settings');
+  return fetchAPI<{ productCount: number; orderCount: number; couponCount: number; bannerCount: number; totalRevenue: number; statusBreakdown: Record<string, number>; recentOrders: any[] }>('/api/settings');
 }
 
 export async function createBanner(data: { image: string; title: string; link: string; active: boolean }) {
