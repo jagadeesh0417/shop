@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, CreditCard, TruckIcon, Package } from 'lu
 import { useCart } from '@/context/CartContext';
 import { formatPrice, cn } from '@/lib/utils';
 import { isCODEnabled } from '@/lib/settings';
+import { validateCoupon, applyDiscount, Coupon } from '@/lib/adminStore';
 
 const steps = ['Shipping', 'Payment', 'Review'];
 
@@ -15,10 +16,28 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [codAvailable, setCodAvailable] = useState(true);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponMsg, setCouponMsg] = useState('');
+
+  const discount = appliedCoupon ? subtotal - applyDiscount(subtotal, appliedCoupon) : 0;
+  const total = subtotal - discount;
 
   useEffect(() => {
     setCodAvailable(isCODEnabled());
   }, []);
+
+  const handleApplyCoupon = () => {
+    if (!couponCode.trim()) return;
+    const found = validateCoupon(couponCode.trim(), subtotal);
+    if (found) {
+      setAppliedCoupon(found);
+      setCouponMsg(`Coupon "${found.code}" applied!`);
+    } else {
+      setAppliedCoupon(null);
+      setCouponMsg('Invalid or expired coupon');
+    }
+  };
 
   const [shipping, setShipping] = useState({
     fullName: '',
@@ -187,15 +206,37 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="bg-surface rounded-lg p-6 border border-border space-y-2 text-sm">
+                <div className="bg-surface rounded-lg p-6 border border-border space-y-3 text-sm">
+                  <div className="flex gap-2">
+                    <input
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Coupon code"
+                      className="flex-1 bg-surface-light border border-border rounded px-3 py-2 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-white/50"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      className="px-4 py-2 bg-white text-[#0341F6] text-sm font-medium rounded hover:bg-white/90 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {couponMsg && (
+                    <p className={`text-xs ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMsg}</p>
+                  )}
                   <div className="flex justify-between text-text-secondary">
                     <span>Subtotal</span><span className="text-white">{formatPrice(subtotal)}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-success">
+                      <span>Discount ({appliedCoupon?.code})</span><span>-{formatPrice(discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-text-secondary">
                     <span>Shipping</span><span className="text-success">Free</span>
                   </div>
                   <div className="border-t border-border pt-2 flex justify-between font-semibold">
-                    <span className="text-white">Total</span><span className="text-white">{formatPrice(subtotal)}</span>
+                    <span className="text-white">Total</span><span className="text-white">{formatPrice(total)}</span>
                   </div>
                 </div>
 

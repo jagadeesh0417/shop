@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Package, ShoppingBag, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Package, ShoppingBag, TrendingUp, Users, DollarSign, Image, Ticket } from 'lucide-react';
 import { isCODEnabled, setCODEnabled } from '@/lib/settings';
 
 const stats = [
@@ -69,22 +69,38 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             href="/admin/products"
             className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
           >
             <ShoppingBag size={24} className="text-accent-light mb-3" />
-            <h2 className="text-lg font-semibold text-white group-hover:text-accent-light transition-colors">Manage Products</h2>
-            <p className="text-sm text-text-secondary mt-1">Add, edit, or remove products from inventory.</p>
+            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Products</h2>
+            <p className="text-xs text-text-secondary mt-1">Manage inventory</p>
           </Link>
           <Link
             href="/admin/orders"
             className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
           >
             <Package size={24} className="text-accent-light mb-3" />
-            <h2 className="text-lg font-semibold text-white group-hover:text-accent-light transition-colors">Manage Orders</h2>
-            <p className="text-sm text-text-secondary mt-1">View and update order statuses.</p>
+            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Orders</h2>
+            <p className="text-xs text-text-secondary mt-1">View & update orders</p>
+          </Link>
+          <Link
+            href="/admin/banners"
+            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
+          >
+            <Image size={24} className="text-accent-light mb-3" />
+            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Banners</h2>
+            <p className="text-xs text-text-secondary mt-1">Add or remove banners</p>
+          </Link>
+          <Link
+            href="/admin/coupons"
+            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
+          >
+            <Ticket size={24} className="text-accent-light mb-3" />
+            <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Coupons</h2>
+            <p className="text-xs text-text-secondary mt-1">Manage coupon codes</p>
           </Link>
         </div>
       </div>
