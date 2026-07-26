@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, Check, CreditCard, TruckIcon, Package } from 'lu
 import { useCart } from '@/context/CartContext';
 import { formatPrice, cn } from '@/lib/utils';
 import { isCODEnabled } from '@/lib/settings';
-import { validateCoupon, applyDiscount, Coupon } from '@/lib/adminStore';
+import { fetchAPI } from '@/lib/api';
 
 const steps = ['Shipping', 'Payment', 'Review'];
 
@@ -17,25 +17,37 @@ export default function CheckoutPage() {
   const [completed, setCompleted] = useState(false);
   const [codAvailable, setCodAvailable] = useState(true);
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [couponMsg, setCouponMsg] = useState('');
 
-  const discount = appliedCoupon ? subtotal - applyDiscount(subtotal, appliedCoupon) : 0;
+  const discount = appliedCoupon
+    ? appliedCoupon.type === 'percentage'
+      ? subtotal - (subtotal - (subtotal * appliedCoupon.value) / 100)
+      : appliedCoupon.value
+    : 0;
   const total = subtotal - discount;
 
   useEffect(() => {
     setCodAvailable(isCODEnabled());
   }, []);
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
-    const found = validateCoupon(couponCode.trim(), subtotal);
-    if (found) {
-      setAppliedCoupon(found);
-      setCouponMsg(`Coupon "${found.code}" applied!`);
-    } else {
+    try {
+      const result = await fetchAPI<{ valid: boolean; coupon?: any; message?: string }>('/api/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code: couponCode.trim(), subtotal }),
+      });
+      if (result.valid && result.coupon) {
+        setAppliedCoupon(result.coupon);
+        setCouponMsg(`Coupon "${result.coupon.code}" applied!`);
+      } else {
+        setAppliedCoupon(null);
+        setCouponMsg(result.message || 'Invalid coupon');
+      }
+    } catch {
       setAppliedCoupon(null);
-      setCouponMsg('Invalid or expired coupon');
+      setCouponMsg('Error validating coupon');
     }
   };
 

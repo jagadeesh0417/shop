@@ -4,19 +4,17 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Package, ShoppingBag, TrendingUp, Users, DollarSign, Image, Ticket } from 'lucide-react';
 import { isCODEnabled, setCODEnabled } from '@/lib/settings';
+import { fetchSettings } from '@/lib/api';
 
-const stats = [
-  { label: 'Total Products', value: '48', icon: ShoppingBag, color: 'text-accent-light' },
-  { label: 'Active Orders', value: '12', icon: Package, color: 'text-warning' },
-  { label: 'Revenue (MTD)', value: '₹84,500', icon: TrendingUp, color: 'text-success' },
-  { label: 'Customers', value: '1,024', icon: Users, color: 'text-accent-light' },
-];
+const iconMap: Record<string, any> = { ShoppingBag, Package, TrendingUp, Users };
 
 export default function AdminPage() {
   const [codOn, setCodOn] = useState(true);
+  const [stats, setStats] = useState({ productCount: 0, orderCount: 0, couponCount: 0, bannerCount: 0 });
 
   useEffect(() => {
     setCodOn(isCODEnabled());
+    fetchSettings().then(setStats).catch(() => {});
   }, []);
 
   const toggleCOD = () => {
@@ -24,6 +22,13 @@ export default function AdminPage() {
     setCodOn(next);
     setCODEnabled(next);
   };
+
+  const statCards = [
+    { label: 'Total Products', value: String(stats.productCount), icon: ShoppingBag, color: 'text-accent-light' },
+    { label: 'Active Orders', value: String(stats.orderCount), icon: Package, color: 'text-warning' },
+    { label: 'Coupons', value: String(stats.couponCount), icon: Ticket, color: 'text-success' },
+    { label: 'Banners', value: String(stats.bannerCount), icon: Image, color: 'text-accent-light' },
+  ];
 
   return (
     <div className="pt-28 pb-20">
@@ -34,7 +39,7 @@ export default function AdminPage() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat) => (
+          {statCards.map((stat) => (
             <div key={stat.label} className="bg-surface rounded-lg p-5 border border-border">
               <stat.icon size={20} className={stat.color} />
               <p className="text-2xl font-bold text-white mt-2">{stat.value}</p>
@@ -49,55 +54,32 @@ export default function AdminPage() {
               <DollarSign size={24} className="text-accent-light" />
               <div>
                 <h2 className="text-sm font-semibold text-white">Cash on Delivery</h2>
-                <p className="text-xs text-text-muted mt-0.5">
-                  {codOn ? 'Customers can pay with COD at checkout' : 'COD is hidden — Razorpay only'}
-                </p>
+                <p className="text-xs text-text-muted mt-0.5">{codOn ? 'COD enabled at checkout' : 'COD hidden — Razorpay only'}</p>
               </div>
             </div>
-            <button
-              onClick={toggleCOD}
-              className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
-                codOn ? 'bg-success' : 'bg-border'
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${
-                  codOn ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
+            <button onClick={toggleCOD} className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${codOn ? 'bg-success' : 'bg-border'}`}>
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${codOn ? 'translate-x-6' : 'translate-x-0'}`} />
             </button>
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
-            href="/admin/products"
-            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
-          >
+          <Link href="/admin/products" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
             <ShoppingBag size={24} className="text-accent-light mb-3" />
             <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Products</h2>
             <p className="text-xs text-text-secondary mt-1">Manage inventory</p>
           </Link>
-          <Link
-            href="/admin/orders"
-            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
-          >
+          <Link href="/admin/orders" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
             <Package size={24} className="text-accent-light mb-3" />
             <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Orders</h2>
             <p className="text-xs text-text-secondary mt-1">View & update orders</p>
           </Link>
-          <Link
-            href="/admin/banners"
-            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
-          >
+          <Link href="/admin/banners" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
             <Image size={24} className="text-accent-light mb-3" />
             <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Banners</h2>
             <p className="text-xs text-text-secondary mt-1">Add or remove banners</p>
           </Link>
-          <Link
-            href="/admin/coupons"
-            className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group"
-          >
+          <Link href="/admin/coupons" className="bg-surface rounded-lg p-6 border border-border hover:border-accent/50 transition-colors group">
             <Ticket size={24} className="text-accent-light mb-3" />
             <h2 className="text-sm font-semibold text-white group-hover:text-accent-light transition-colors">Coupons</h2>
             <p className="text-xs text-text-secondary mt-1">Manage coupon codes</p>
