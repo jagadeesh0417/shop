@@ -72,6 +72,7 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = useState({
     fullName: '', phone: '', street: '', city: '', state: '', pincode: '',
   });
+  const [shippingErrors, setShippingErrors] = useState<Record<string, string>>({});
 
   const createOrderInDB = async (paymentId?: string) => {
     const orderData = {
@@ -171,7 +172,31 @@ export default function CheckoutPage() {
     );
   }
 
-  const nextStep = () => { if (step < 2) setStep(step + 1); };
+  const validateShipping = () => {
+    const errs: Record<string, string> = {};
+    const fields: Record<string, string> = {
+      fullName: 'Full Name', phone: 'Phone', street: 'Street Address',
+      city: 'City', state: 'State', pincode: 'Pincode',
+    };
+    for (const [key, label] of Object.entries(fields)) {
+      if (!shipping[key as keyof typeof shipping].trim()) {
+        errs[key] = `${label} is required`;
+      }
+    }
+    if (!errs.phone && !/^\d{10}$/.test(shipping.phone.trim())) {
+      errs.phone = 'Enter a valid 10-digit phone number';
+    }
+    if (!errs.pincode && !/^\d{6}$/.test(shipping.pincode.trim())) {
+      errs.pincode = 'Enter a valid 6-digit pincode';
+    }
+    setShippingErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const nextStep = () => {
+    if (step === 0 && !validateShipping()) return;
+    if (step < 2) setStep(step + 1);
+  };
   const prevStep = () => { if (step > 0) setStep(step - 1); };
 
   return (
@@ -208,7 +233,8 @@ export default function CheckoutPage() {
                   ].map((field) => (
                     <div key={field.key} className={field.span ? 'sm:col-span-2' : ''}>
                       <label className="text-xs text-text-muted mb-1 block">{field.label}</label>
-                      <input type={field.type || 'text'} value={shipping[field.key as keyof typeof shipping]} onChange={(e) => setShipping({ ...shipping, [field.key]: e.target.value })} placeholder={field.placeholder} className="w-full bg-surface-light border border-border rounded px-3 py-2.5 text-sm text-white placeholder:text-text-muted focus:outline-none focus:border-white/50 transition-colors" />
+                      <input type={field.type || 'text'} value={shipping[field.key as keyof typeof shipping]} onChange={(e) => { setShipping({ ...shipping, [field.key]: e.target.value }); if (shippingErrors[field.key]) setShippingErrors({ ...shippingErrors, [field.key]: '' }); }} placeholder={field.placeholder} className={cn('w-full bg-surface-light border rounded px-3 py-2.5 text-sm text-white placeholder:text-text-muted focus:outline-none transition-colors', shippingErrors[field.key] ? 'border-red-500' : 'border-border focus:border-white/50')} />
+                      {shippingErrors[field.key] && <p className="text-xs text-red-400 mt-1">{shippingErrors[field.key]}</p>}
                     </div>
                   ))}
                 </div>
