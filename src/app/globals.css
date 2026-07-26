@@ -109,6 +109,31 @@
     animation: marquee 30s linear infinite;
   }
 
+  .admin-layout {
+    background-color: #ffffff;
+    min-height: 100vh;
+  }
+
+  .admin-layout .admin-content { color: #111827; }
+
+  .admin-layout input,
+  .admin-layout select,
+  .admin-layout textarea {
+    color: #111827;
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .admin-layout input::placeholder,
+  .admin-layout select::placeholder,
+  .admin-layout textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  .admin-layout .text-success { color: #059669; }
+  .admin-layout .text-error { color: #dc2626; }
+  .admin-layout .text-warning { color: #d97706; }
+
   @keyframes pulse-dot {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }

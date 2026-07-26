@@ -20,5 +20,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (pathname === '/admin/login') return <>{children}</>;
   if (!authed) return null;
 
-  return <>{children}</>;
+  return (
+    <div className="admin-layout">
+      <div className="admin-content">{children}</div>
+    </div>
+  );
 }
