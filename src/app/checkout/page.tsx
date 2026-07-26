@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, CreditCard, TruckIcon, Package } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice, cn } from '@/lib/utils';
+import { isCODEnabled } from '@/lib/settings';
 
 const steps = ['Shipping', 'Payment', 'Review'];
 
@@ -13,6 +14,11 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const [step, setStep] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [codAvailable, setCodAvailable] = useState(true);
+
+  useEffect(() => {
+    setCodAvailable(isCODEnabled());
+  }, []);
 
   const [shipping, setShipping] = useState({
     fullName: '',
@@ -148,9 +154,8 @@ export default function CheckoutPage() {
                 </div>
                 <div className="space-y-3">
                   {[
-                    { label: 'Cash on Delivery', desc: 'Pay when you receive' },
+                    ...(codAvailable ? [{ label: 'Cash on Delivery', desc: 'Pay when you receive' }] : []),
                     { label: 'Razorpay', desc: 'Cards, UPI, Net Banking' },
-                    { label: 'Stripe', desc: 'Credit / Debit Card' },
                   ].map((method) => (
                     <label key={method.label} className="flex items-center gap-3 p-4 bg-surface-light rounded-lg border border-border cursor-pointer hover:border-accent/50 transition-colors">
                       <input type="radio" name="payment" defaultChecked={method.label === 'Cash on Delivery'} className="accent-accent" />
