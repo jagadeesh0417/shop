@@ -51,7 +51,7 @@ export default function AdminLoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
           required
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0341F6]"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0341F6]"
         />
         <div className="relative">
           <input
@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             required
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-[#0341F6]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-gray-900 pr-10 focus:outline-none focus:ring-2 focus:ring-[#0341F6]"
           />
           <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
